@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
 import { formatDateTime } from "@/lib/utils";
+import { useRouter, usePathname } from "next/navigation";
 
 interface EventProps {
   event: {
@@ -14,6 +15,8 @@ interface EventProps {
 }
 
 export function Event({ event }: EventProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [trueBets, setTrueBets] = useState(0);
   const [falseBets, setFalseBets] = useState(0);
 
@@ -39,6 +42,11 @@ export function Event({ event }: EventProps) {
     setFalseBets(falseSum);
   };
 
+  const handleBetClick = () => {
+    const leagueId = pathname?.split('/')[3];
+    router.push(`/dashboard/leagues/${leagueId}/events/${event.id}/bet`);
+  };
+
   return (
     <div className="border rounded-lg p-4 mb-4 shadow-sm">
       <h3 className="text-lg font-semibold">{event.title}</h3>
@@ -54,10 +62,11 @@ export function Event({ event }: EventProps) {
           <div>Payout: {falseBets ? (falseBets / trueBets + 1).toFixed(2) : '2.00'}x</div>
         </div>
         <Button 
+          onClick={handleBetClick}
           variant="secondary"
-          className="bg-blue-50 hover:bg-blue-100"
+          className="bg-gray-900 hover:bg-gray-800 text-white"
         >
-          Bet
+          Apostar
         </Button>
         <div className="text-sm text-right">
           <div>False Bets: {falseBets} coins</div>
