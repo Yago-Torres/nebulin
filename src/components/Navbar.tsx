@@ -32,10 +32,10 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             <span className="text-gray-700 hover:text-gray-900">Home</span>
           </Link>
           <Link href="/dashboard/account">
-            <span className="text-gray-700 hover:text-gray-900">Account</span>
+            <span className="text-gray-700 hover:text-gray-900">Cuenta</span>
           </Link>
           <Link href="/dashboard/bank">
-            <span className="text-gray-700 hover:text-gray-900">Bank</span>
+            <span className="text-gray-700 hover:text-gray-900">Fondos</span>
           </Link>
           <button
             onClick={() => setIsHelpOpen(true)}

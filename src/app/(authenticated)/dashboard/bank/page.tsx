@@ -76,7 +76,7 @@ export default function BankPage() {
       {/* Display Balance */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold">Saldo Actual</h2>
-        <p className="text-4xl font-bold text-green-600">${balance.toFixed(2)}</p>
+        <p className="text-4xl font-bold text-green-600">{balance} nebulines</p>
       </div>
 
       {/* Ledger Table */}
@@ -106,8 +106,8 @@ export default function BankPage() {
                     }`}
                   >
                     {entry.type === "withdraw" || entry.type === "bet_loss"
-                      ? `- $${entry.amount.toFixed(2)}`
-                      : `+ $${entry.amount.toFixed(2)}`}
+                      ? `- ${entry.amount} nebulines`
+                      : `+ ${entry.amount} nebulines`}
                   </td>
                 </tr>
               ))
