@@ -73,19 +73,19 @@ export default function LeaguePage() {
   };
 
   if (loading || authLoading) {
-    return <p className="p-4 text-center">Cargando...</p>;
+    return <p className="p-4 text-center dark:text-white">Cargando...</p>;
   }
 
   if (!league) {
-    return <p className="p-4 text-center">Liga no encontrada</p>;
+    return <p className="p-4 text-center dark:text-white">Liga no encontrada</p>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-900 shadow-md rounded-md">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{league.name}</h1>
-          <p className="text-gray-600">{league.description}</p>
+          <h1 className="text-2xl font-bold dark:text-white">{league.name}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{league.description}</p>
         </div>
         <Button onClick={() => router.push('/dashboard')}>
           Volver
@@ -95,8 +95,8 @@ export default function LeaguePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {events.length === 0 ? (
           <div className="col-span-full text-center py-12">
-            <h2 className="text-xl font-semibold mb-2">No hay eventos activos</h2>
-            <p className="text-gray-600 mb-4">Crea un nuevo evento para empezar</p>
+            <h2 className="text-xl font-semibold mb-2 dark:text-white">No hay eventos activos</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Crea un nuevo evento para empezar</p>
           </div>
         ) : (
           events.map((event) => (

@@ -1,0 +1,10 @@
+{
+    "css.validate": false,
+    "tailwindCSS.experimental.classRegex": [],
+    "tailwindCSS.includeLanguages": {
+      "plaintext": "html"
+    },
+    "editor.quickSuggestions": {
+      "strings": true
+    }
+  }

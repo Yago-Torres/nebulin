@@ -1,0 +1,9 @@
+-- Para hacer un depósito de 1000 nebulines al usuario con ID específico
+SELECT deposit_money('user-uuid-here', 1000);
+
+-- Para hacer un retiro de 500 nebulines
+SELECT withdraw_money('user-uuid-here', 500);
+
+SELECT resolve_event('event-uuid-here', true);  -- true si el resultado es "Sí"
+SELECT resolve_event('event-uuid-here', false); -- false si el resultado es "No"
+SELECT id, title FROM events WHERE resolved_at IS NULL;

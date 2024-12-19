@@ -7,13 +7,20 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 
+type LedgerTransactionType = 
+  | "DEPOSIT"        // Depósito de dinero
+  | "WITHDRAW"       // Retiro de dinero
+  | "BET_PLACED"     // Apuesta realizada
+  | "BET_WIN"        // Ganancia de apuesta
+  | "BET_LOSS";      // Pérdida de apuesta
+
 interface Balance {
   balance: number;
 }
 
 interface LedgerEntry {
   id: string;
-  type: string;
+  type: LedgerTransactionType;
   amount: number;
   description: string | null;
   timestamp: string;
@@ -65,55 +72,74 @@ export default function BankPage() {
     }
   };
 
-  if (isLoading || !user) {
-    return <p>Cargando...</p>;
-  }
+  const getAmountDisplay = (entry: LedgerEntry) => {
+    // Depósitos y ganancias en verde
+    if (entry.type === "DEPOSIT" || entry.type === "BET_WIN") {
+      return {
+        color: "text-green-600",
+        text: `+ ${entry.amount} nebulines`
+      };
+    }
+    
+    // Apuestas y retiros en rojo, sin signo para apuestas
+    if (entry.type === "BET_PLACED") {
+      return {
+        color: "text-red-600",
+        text: `${entry.amount} nebulines`
+      };
+    }
+    
+    // Retiros y pérdidas con signo negativo
+    return {
+      color: "text-red-600",
+      text: `- ${entry.amount} nebulines`
+    };
+  };
+
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-md">
-      <h1 className="text-2xl font-bold mb-4">Tu Banco</h1>
+    <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-800 shadow-md rounded-md">
+      <h1 className="text-2xl font-bold mb-4 dark:text-white">Tu Banco</h1>
 
       {/* Display Balance */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold">Saldo Actual</h2>
-        <p className="text-4xl font-bold text-green-600">{balance} nebulines</p>
+        <h2 className="text-xl font-semibold dark:text-white">Saldo Actual</h2>
+        <p className="text-4xl font-bold text-green-600 dark:text-green-400 mb-4">{balance} nebulines</p>
       </div>
 
       {/* Ledger Table */}
-      <h2 className="text-xl font-semibold mb-4">Historial de Transacciones</h2>
+      <h2 className="text-xl font-semibold mb-4 dark:text-white">Historial de Transacciones</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-left table-auto border-collapse">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 border">Fecha</th>
-              <th className="p-3 border">Tipo</th>
-              <th className="p-3 border">Descripción</th>
-              <th className="p-3 border">Monto</th>
+            <tr className="bg-gray-100 dark:bg-gray-700">
+              <th className="p-3 border border-gray-200 dark:border-gray-600 dark:text-gray-200">Fecha</th>
+              <th className="p-3 border border-gray-200 dark:border-gray-600 dark:text-gray-200">Tipo</th>
+              <th className="p-3 border border-gray-200 dark:border-gray-600 dark:text-gray-200">Descripción</th>
+              <th className="p-3 border border-gray-200 dark:border-gray-600 dark:text-gray-200">Cantidad</th>
             </tr>
           </thead>
           <tbody>
             {ledger.length > 0 ? (
               ledger.map((entry) => (
-                <tr key={entry.id} className="hover:bg-gray-50">
-                  <td className="p-3 border">{new Date(entry.timestamp).toLocaleString()}</td>
-                  <td className="p-3 border capitalize">{entry.type}</td>
-                  <td className="p-3 border">{entry.description || "N/A"}</td>
-                  <td
-                    className={`p-3 border ${
-                      entry.type === "deposit" || entry.type === "bet_win"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {entry.type === "withdraw" || entry.type === "bet_loss"
-                      ? `- ${entry.amount} nebulines`
-                      : `+ ${entry.amount} nebulines`}
+                <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="p-3 border border-gray-200 dark:border-gray-600 dark:text-gray-200">
+                    {new Date(entry.timestamp).toLocaleString()}
+                  </td>
+                  <td className="p-3 border border-gray-200 dark:border-gray-600 dark:text-gray-200 capitalize">
+                    {entry.type}
+                  </td>
+                  <td className="p-3 border border-gray-200 dark:border-gray-600 dark:text-gray-200">
+                    {entry.description || "N/A"}
+                  </td>
+                  <td className={`p-3 border border-gray-200 dark:border-gray-600 ${getAmountDisplay(entry).color}`}>
+                    {getAmountDisplay(entry).text}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="text-center text-gray-500 p-4">
+                <td colSpan={4} className="text-center text-gray-500 dark:text-gray-400 p-4">
                   No hay transacciones registradas.
                 </td>
               </tr>

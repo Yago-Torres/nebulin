@@ -56,6 +56,13 @@ export default function BetPage() {
         return;
       }
 
+      // Check if event has ended
+      if (new Date(data.end_time) <= new Date()) {
+        toast.error("Este evento ha finalizado y no acepta más apuestas");
+        router.back();
+        return;
+      }
+
       setEvent(data);
       setLoading(false);
     };
@@ -123,22 +130,52 @@ export default function BetPage() {
     }
 
     try {
-      const { error } = await supabase
-        .from('bets')
-        .insert([
-          {
-            event_id: eventId,
-            user_id: user.id,
-            amount: betAmount,
-            prediction_equal_true: prediction,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+      // Get league_id from pathname
+      const leagueId = pathname?.split('/')[3];
 
-      if (error) throw error;
+      // First check if user has enough balance
+      const { data: balanceData, error: balanceError } = await supabase
+        .from('users_balance')
+        .select('balance')
+        .eq('id', user.id)
+        .single();
+
+      if (balanceError || !balanceData) {
+        toast.error("Error al verificar el saldo");
+        return;
+      }
+
+      if (balanceData.balance < betAmount) {
+        toast.error("No tienes suficientes nebulines");
+        return;
+      }
+
+      // Start a transaction
+      const { error: memberError } = await supabase
+        .from('league_members')
+        .select('id')
+        .eq('league_id', leagueId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (memberError) {
+        toast.error("No eres miembro de esta liga");
+        return;
+      }
+
+      // Place the bet and update balance in a transaction
+      const { error: transactionError } = await supabase.rpc('place_bet', {
+        p_user_id: user.id,
+        p_event_id: eventId,
+        p_amount: betAmount,
+        p_prediction: prediction,
+        p_league_id: leagueId
+      });
+
+      if (transactionError) throw transactionError;
 
       toast.success("Apuesta realizada correctamente");
-      router.refresh(); // Refresh the page to update the betting totals
+      router.push(`/dashboard/leagues/${leagueId}`);
     } catch (error) {
       console.error('Error placing bet:', error);
       toast.error("Error al realizar la apuesta");

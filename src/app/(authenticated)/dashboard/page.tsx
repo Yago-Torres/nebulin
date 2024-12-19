@@ -54,19 +54,19 @@ export default function DashboardPage() {
   };
 
   if (isLoading || loading) {
-    return <p className="p-4 text-center">Cargando...</p>;
+    return <p className="p-4 text-center dark:text-white">Cargando...</p>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-900 shadow-md rounded-md">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Mis Ligas</h1>
+        <h1 className="text-2xl font-bold dark:text-white">Mis Ligas</h1>
       </div>
 
       {leagues.length === 0 ? (
         <div className="text-center py-12">
-          <h2 className="text-xl font-semibold mb-2">No estás en ninguna liga</h2>
-          <p className="text-gray-600 mb-4">Crea o únete a una liga para empezar</p>
+          <h2 className="text-xl font-semibold mb-2 dark:text-white">No estás en ninguna liga</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">Crea o únete a una liga para empezar</p>
           <Link href="/create-league">
             <Button>Crear Liga</Button>
           </Link>
@@ -78,11 +78,11 @@ export default function DashboardPage() {
               <div
                 key={league.id}
                 onClick={() => router.push(`/dashboard/leagues/${league.id}`)}
-                className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
+                className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
               >
-                <h3 className="text-lg font-semibold mb-2">{league.name}</h3>
-                <p className="text-gray-600 text-sm mb-2">{league.description}</p>
-                <div className="text-sm text-gray-500">
+                <h3 className="text-lg font-semibold mb-2 dark:text-white">{league.name}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{league.description}</p>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   {league.member_count} miembros
                 </div>
               </div>

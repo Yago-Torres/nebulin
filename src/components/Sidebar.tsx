@@ -30,7 +30,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed top-0 h-screen w-64 bg-white border-r border-gray-200 overflow-y-auto shadow-lg z-[100]"
+            className="fixed top-0 h-screen w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto shadow-lg z-[100]"
           >
             <div className="h-16 border-b border-gray-200 p-4 font-bold text-xl flex items-center justify-between">
               <span>Menu</span>

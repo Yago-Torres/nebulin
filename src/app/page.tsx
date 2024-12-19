@@ -13,23 +13,25 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 dark:bg-gray-900">
       {user ? (
         <>
-          <h2 className="text-2xl font-semibold">Bienvenido de nuevo, {user.email}!</h2>
+          <h2 className="text-2xl font-semibold dark:text-white">Bienvenido de nuevo, {user.email}!</h2>
           <Link href="/dashboard">
             <Button variant="primary">Ir al Dashboard</Button>
           </Link>
         </>
       ) : (
         <>
-          <h2 className="text-3xl font-bold">Bienvenido a Nebulin</h2>
-          <p className="text-gray-600">
+          <h2 className="text-3xl font-bold dark:text-white">Bienvenido a Nebulin</h2>
+          <p className="text-gray-600 dark:text-gray-400">
             Tu mercado de predicciones privado con amigos.
           </p>
           <div className="flex gap-4 mt-4">
             <Link href="/login">
-              <Button variant="ghost">Iniciar Sesión</Button>
+              <Button variant="ghost" className="dark:text-gray-300 dark:hover:text-white">
+                Iniciar Sesión
+              </Button>
             </Link>
             <Link href="/signup">
               <Button variant="primary">Registrarse</Button>
