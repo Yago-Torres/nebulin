@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetClose, SheetTitle } from "@/components/ui/sheet"; 
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { UserPlusIcon } from "lucide-react";
+import FriendsList from "@/components/FriendsList";
 
 interface SidebarProps {
   open: boolean;
@@ -12,6 +14,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
+  const sidebarItems = [
+    {
+      title: "Buscar Amigos",
+      href: "/dashboard/search",
+      icon: UserPlusIcon
+    }
+  ];
+
   return (
     <AnimatePresence>
       {open && (
@@ -42,6 +52,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <a href="/dashboard/lobbies" className="text-gray-700 hover:bg-gray-100 p-2 rounded">Lobbies</a>
               <a href="/dashboard/bets" className="text-gray-700 hover:bg-gray-100 p-2 rounded">Bets I'm In</a>
             </nav>
+            <div className="mt-auto">
+              <FriendsList />
+            </div>
           </motion.div>
         </>
       )}

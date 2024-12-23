@@ -35,6 +35,7 @@ export default function BetPage() {
   const [memberBets, setMemberBets] = useState<LeagueMemberBets[]>([]);
   const [totalTrue, setTotalTrue] = useState(0);
   const [totalFalse, setTotalFalse] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const eventId = pathname?.split('/').filter(Boolean)[4]; // Get event ID from URL
 
@@ -119,17 +120,27 @@ export default function BetPage() {
   }, [eventId]);
 
   const handleBet = async (prediction: boolean) => {
-    if (!user) {
-      toast.error("Debes iniciar sesión para apostar");
-      return;
-    }
-
-    if (betAmount < 10) {
-      toast.error("La apuesta mínima es de 10 nebulines");
-      return;
-    }
-
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
+      console.log('Sending bet with params:', {
+        p_user_id: user?.id,
+        p_event_id: eventId,
+        p_amount: Number(betAmount),
+        p_prediction: prediction,
+        p_league_id: pathname?.split('/')[3]
+      });
+      if (!user) {
+        toast.error("Debes iniciar sesión para apostar");
+        return;
+      }
+
+      if (betAmount < 10) {
+        toast.error("La apuesta mínima es de 10 nebulines");
+        return;
+      }
+
       // Get league_id from pathname
       const leagueId = pathname?.split('/')[3];
 
@@ -167,7 +178,7 @@ export default function BetPage() {
       const { error: transactionError } = await supabase.rpc('place_bet', {
         p_user_id: user.id,
         p_event_id: eventId,
-        p_amount: betAmount,
+        p_amount: Number(betAmount),
         p_prediction: prediction,
         p_league_id: leagueId
       });
@@ -179,6 +190,7 @@ export default function BetPage() {
     } catch (error) {
       console.error('Error placing bet:', error);
       toast.error("Error al realizar la apuesta");
+      setIsSubmitting(false); // Reactivar el botón solo si hay error
     }
   };
 
@@ -210,10 +222,9 @@ export default function BetPage() {
               <label className="text-gray-100 text-lg font-medium">Nebulines a apostar</label>
               <div className="flex items-center gap-4">
                 <Input
-                  type="number"
-                  min={10}
+                  type="number" 
                   value={betAmount}
-                  onChange={(e) => setBetAmount(Math.max(10, Number(e.target.value)))}
+                  onChange={(e) => setBetAmount(Number(e.target.value))}
                   className="w-40 bg-gray-800 border-gray-700 text-gray-100"
                 />
                 <span className="text-gray-300">mínimo 10 nebulines</span>
@@ -260,7 +271,7 @@ export default function BetPage() {
               <h3 className="text-xl font-semibold mb-4">Confirmar Apuesta</h3>
               <p className="mb-4">
                 ¿Estás seguro que quieres apostar {pendingBet.amount} nebulines a 
-                &quot;{pendingBet.prediction ? 'Sí' : 'No'}&quot; para el evento 
+                &quot;{pendingBet.prediction ? 'S��' : 'No'}&quot; para el evento 
                 &quot;{event?.title}&quot;?
               </p>
               <div className="flex justify-end gap-2">
@@ -279,8 +290,9 @@ export default function BetPage() {
                     setShowConfirmation(false);
                     setPendingBet(null);
                   }}
+                  disabled={isSubmitting}
                 >
-                  Confirmar
+                  {isSubmitting ? "Procesando..." : "Confirmar"}
                 </Button>
               </div>
             </div>
