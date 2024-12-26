@@ -8,6 +8,8 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { Event } from "@/components/Event";
+import InviteLeagueMemberDialog from "@/components/league/InviteLeagueMemberDialog";
+
 
 interface League {
   id: string;
@@ -87,9 +89,12 @@ export default function LeaguePage() {
           <h1 className="text-2xl font-bold dark:text-white">{league.name}</h1>
           <p className="text-gray-600 dark:text-gray-400">{league.description}</p>
         </div>
-        <Button onClick={() => router.push('/dashboard')}>
-          Volver
-        </Button>
+        <div className="flex gap-2">
+          <InviteLeagueMemberDialog leagueId={leagueId || ''} />
+          <Button onClick={() => router.push('/dashboard')}>
+            Volver
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

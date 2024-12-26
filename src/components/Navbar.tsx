@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 import { useState } from "react";
 import { HelpOverlay } from "./HelpOverlay";
 import { ThemeToggle } from "./ThemeToggle";
+import InvitesPopup from "./InvitesPopup";
 
 interface NavbarProps {
   onToggleSidebar: () => void;
@@ -51,6 +52,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             Ayuda
           </button>
           <ThemeToggle />
+          <InvitesPopup />
         </nav>
       </header>
 

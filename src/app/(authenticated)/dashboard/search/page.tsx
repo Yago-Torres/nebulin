@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import Image from "next/image";
+import { logger } from "@/utils/logger";  // Add this import
+import { Avatar } from "@/components/ui/Avatar";
 
 interface Profile {
   id: string;
@@ -20,24 +22,66 @@ export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+
+  const getSignedUrl = async (avatarPath: string) => {
+    try {
+      const folderName = avatarPath.includes('avatars/') 
+        ? avatarPath.split('avatars/')[1].split('/')[0]
+        : avatarPath;
+      
+      const filePath = `${folderName}/avatar.png`;
+      console.log('Requesting signed URL for path:', filePath);
+      
+      const { data, error } = await supabase
+        .storage
+        .from('avatars')
+        .createSignedUrl(filePath, 3600);
+
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
+      return null;
+    }
+  };
+
+  const loadAvatarUrls = async (profiles: Profile[]) => {
+    const urls: Record<string, string> = {};
+    for (const profile of profiles) {
+      if (profile.avatar_url) {
+        const signedUrl = await getSignedUrl(profile.avatar_url);
+        if (signedUrl) {
+          urls[profile.id] = signedUrl;
+        }
+      }
+    }
+    setAvatarUrls(urls);
+  };
 
   const handleSearch = async () => {
-    if (searchTerm.length < 3) {
-      toast.info("Ingresa al menos 3 caracteres");
+    if (!user) return;
+    
+    if (searchTerm.length < 2) {
+      toast.info("Ingresa al menos 2 caracteres");
       return;
     }
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: searchData, error: searchError } = await supabase
         .from('profiles')
         .select('id, username, avatar_url, bio')
         .ilike('username', `%${searchTerm}%`)
-        .neq('id', user?.id)
+        .not('id', 'eq', user.id)
         .limit(10);
 
-      if (error) throw error;
-      setSearchResults(data || []);
+      if (searchError) throw searchError;
+      
+      if (searchData) {
+        setSearchResults(searchData);
+        await loadAvatarUrls(searchData);
+      }
     } catch (error) {
       console.error('Error searching profiles:', error);
       toast.error("Error al buscar usuarios");
@@ -81,23 +125,14 @@ export default function SearchPage() {
         </Button>
       </div>
 
+
       <div className="grid gap-4">
         {searchResults.map((profile) => (
-          <div key={profile.id} className="bg-gray-900 p-4 rounded-lg flex items-center gap-4">
-            {profile.avatar_url ? (
-              <Image
-                src={profile.avatar_url}
-                alt={profile.username}
-                width={50}
-                height={50}
-                className="rounded-full"
-              />
-            ) : (
-              <div className="w-12 h-12 bg-gray-700 rounded-full" />
-            )}
+          <div key={profile.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 rounded-lg flex items-center gap-4">
+            <Avatar url={avatarUrls[profile.id]} username={profile.username} size={50} />
             <div className="flex-1">
-              <h3 className="text-lg font-semibold">{profile.username}</h3>
-              {profile.bio && <p className="text-gray-400">{profile.bio}</p>}
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{profile.username}</h3>
+              {profile.bio && <p className="text-gray-500 dark:text-gray-400">{profile.bio}</p>}
             </div>
             <Button onClick={() => sendFriendRequest(profile.id)}>
               Agregar Amigo

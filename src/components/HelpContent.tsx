@@ -12,8 +12,9 @@ export function HelpContent() {
           <li>Si ganas, recibes tu apuesta más una parte proporcional del pool perdedor</li>
           <li>Ejemplo: Si hay 100 nebulines en Verdadero y 200 en Falso:
             <ul className="list-circle pl-5 mt-1 text-gray-700 dark:text-gray-400">
-              <li>Apostar a Verdadero paga tu apuesta + (tu apuesta/100 × 200)</li>
-              <li>Apostar a Falso paga tu apuesta + (tu apuesta/200 × 100)</li>
+              <li>Si apuestas 10 a Verdadero, puedes ganar máximo 10 nebulines extra</li>
+              <li>Si apuestas 20 a Falso, puedes ganar máximo 20 nebulines extra</li>
+              <li>Las ganancias son proporcionales al tamaño de tu apuesta dentro del pool</li>
             </ul>
           </li>
         </ul>

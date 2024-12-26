@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface Profile {
     id: string;
@@ -150,13 +151,11 @@ export default function AccountPage() {
 
     let avatar_url = profile?.avatar_url || "";
 
-    if (data.avatar && data.avatar.length > 0) {
+   if (data.avatar && data.avatar.length > 0) {
       const file = data.avatar[0];
-      const folderName = crypto.randomUUID(); // Generate a unique folder name
-      const filePath = `${folderName}/avatar.png`;
+      const filePath = `${user?.id}/avatar.png`;  // Use user ID instead of random UUID
 
       try {
-        // Upload the file
         const { error: uploadError } = await supabase
           .storage
           .from("avatars")
@@ -168,7 +167,7 @@ export default function AccountPage() {
 
         if (uploadError) throw uploadError;
         
-        avatar_url = folderName; // Store the folder name as the avatar_url
+        avatar_url = `https://fdutuxjeqjfybsbkxgij.supabase.co/storage/v1/object/public/avatars/${filePath}`;
 
       } catch (error) {
         console.error("Error uploading avatar:", error);
@@ -185,7 +184,7 @@ export default function AccountPage() {
         username: data.username,
         bio: data.bio,
         avatar_url: avatar_url,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .eq('id', user?.id);
 
@@ -219,22 +218,13 @@ export default function AccountPage() {
 
       {profile ? (
         <div className="space-y-6">
-          <div className="relative w-[100px] h-[100px] bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt="Avatar"
-                className="w-full h-full object-cover rounded-full"
-                onError={(e) => {
-                  console.error('Image failed to load:', avatarUrl);
-                  setAvatarUrl(null);
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                <span className="text-gray-400 dark:text-gray-500">No avatar</span>
-              </div>
-            )}
+          <div className="relative w-[100px] h-[100px]">
+            <Avatar 
+              url={avatarUrl} 
+              username={profile.username || ''} 
+              size={100}
+              className="w-full h-full"
+            />
           </div>
 
           <div className="space-y-4">
@@ -324,6 +314,15 @@ export default function AccountPage() {
                 <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.avatar.message}</p>
               )}
             </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Guardando..." : "Guardar Cambios"}
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

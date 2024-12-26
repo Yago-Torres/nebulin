@@ -36,6 +36,7 @@ export default function BetPage() {
   const [totalTrue, setTotalTrue] = useState(0);
   const [totalFalse, setTotalFalse] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userBalance, setUserBalance] = useState(0);
 
   const eventId = pathname?.split('/').filter(Boolean)[4]; // Get event ID from URL
 
@@ -119,18 +120,29 @@ export default function BetPage() {
     fetchLeagueMemberBets();
   }, [eventId]);
 
+  useEffect(() => {
+    if (user) {
+      const fetchBalance = async () => {
+        const { data, error } = await supabase
+          .from('users_balance')
+          .select('balance')
+          .eq('id', user.id)
+          .single();
+
+        if (!error && data) {
+          setUserBalance(data.balance);
+        }
+      };
+
+      fetchBalance();
+    }
+  }, [user]);
+
   const handleBet = async (prediction: boolean) => {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
     try {
-      console.log('Sending bet with params:', {
-        p_user_id: user?.id,
-        p_event_id: eventId,
-        p_amount: Number(betAmount),
-        p_prediction: prediction,
-        p_league_id: pathname?.split('/')[3]
-      });
       if (!user) {
         toast.error("Debes iniciar sesión para apostar");
         return;
@@ -153,15 +165,17 @@ export default function BetPage() {
 
       if (balanceError || !balanceData) {
         toast.error("Error al verificar el saldo");
+        setIsSubmitting(false);
         return;
       }
 
       if (balanceData.balance < betAmount) {
         toast.error("No tienes suficientes nebulines");
+        setIsSubmitting(false);
         return;
       }
 
-      // Start a transaction
+      // Check if user is a league member
       const { error: memberError } = await supabase
         .from('league_members')
         .select('id')
@@ -171,6 +185,7 @@ export default function BetPage() {
 
       if (memberError) {
         toast.error("No eres miembro de esta liga");
+        setIsSubmitting(false);
         return;
       }
 
@@ -190,8 +205,21 @@ export default function BetPage() {
     } catch (error) {
       console.error('Error placing bet:', error);
       toast.error("Error al realizar la apuesta");
-      setIsSubmitting(false); // Reactivar el botón solo si hay error
+      setIsSubmitting(false);
     }
+  };
+
+  const calculatePotentialPayout = (betAmount: number, totalForSide: number, totalAgainstSide: number) => {
+    if (totalAgainstSide === 0) return betAmount * 2; // Default 2x if no opposing bets
+    
+    // Calculate the potential win, capped at betAmount
+    const potentialWin = Math.min(
+      betAmount,
+      (betAmount / totalForSide) * totalAgainstSide
+    );
+    
+    // Return original bet + winnings
+    return betAmount + potentialWin;
   };
 
   if (loading || authLoading) {
@@ -239,13 +267,16 @@ export default function BetPage() {
               setPendingBet({ prediction: true, amount: betAmount });
               setShowConfirmation(true);
             }}
-            className="bg-green-900/20 p-4 rounded-lg hover:bg-green-900/30 transition-colors group relative"
+            disabled={betAmount > userBalance}
+            className={`bg-green-900/20 p-4 rounded-lg hover:bg-green-900/30 transition-colors group relative ${
+              betAmount > userBalance ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <div className="absolute inset-0 rounded-lg border-2 border-transparent group-hover:border-green-500/20"></div>
             <h3 className="text-lg font-medium text-green-600">Apuestas "Sí"</h3>
             <p className="text-2xl font-bold">{totalTrue} nebulines</p>
             <p className="text-sm text-gray-600">
-              Pago potencial: {totalFalse ? (totalFalse / totalTrue + 1).toFixed(2) : '2.00'}x
+              Pago potencial: {calculatePotentialPayout(betAmount, totalTrue, totalFalse).toFixed(2)} nebulines
             </p>
           </button>
           
@@ -254,15 +285,22 @@ export default function BetPage() {
               setPendingBet({ prediction: false, amount: betAmount });
               setShowConfirmation(true);
             }}
-            className="bg-red-900/20 p-4 rounded-lg hover:bg-red-900/30 transition-colors group relative"
+            disabled={betAmount > userBalance}
+            className={`bg-red-900/20 p-4 rounded-lg hover:bg-red-900/30 transition-colors group relative ${
+              betAmount > userBalance ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <div className="absolute inset-0 rounded-lg border-2 border-transparent group-hover:border-red-500/20"></div>
             <h3 className="text-lg font-medium text-red-600">Apuestas "No"</h3>
             <p className="text-2xl font-bold">{totalFalse} nebulines</p>
             <p className="text-sm text-gray-600">
-              Pago potencial: {totalTrue ? (totalTrue / totalFalse + 1).toFixed(2) : '2.00'}x
+              Pago potencial: {calculatePotentialPayout(betAmount, totalFalse, totalTrue).toFixed(2)} nebulines
             </p>
           </button>
+        </div>
+
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Saldo disponible: {userBalance} nebulines
         </div>
 
         {showConfirmation && pendingBet && (
@@ -271,7 +309,7 @@ export default function BetPage() {
               <h3 className="text-xl font-semibold mb-4">Confirmar Apuesta</h3>
               <p className="mb-4">
                 ¿Estás seguro que quieres apostar {pendingBet.amount} nebulines a 
-                &quot;{pendingBet.prediction ? 'S��' : 'No'}&quot; para el evento 
+                &quot;{pendingBet.prediction ? 'Sí' : 'No'}&quot; para el evento 
                 &quot;{event?.title}&quot;?
               </p>
               <div className="flex justify-end gap-2">

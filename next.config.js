@@ -4,9 +4,9 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'fdutuxjeqjfybsbkxgij.supabase.co',
+        hostname: 'xsgames.co',
         port: '',
-        pathname: '/storage/v1/object/public/avatars/**',
+        pathname: '/randomusers/**',
       },
     ],
     domains: ['fdutuxjeqjfybsbkxgij.supabase.co'],

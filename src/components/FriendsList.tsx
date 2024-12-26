@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { toast } from "react-toastify";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface Friend {
   id: string;
@@ -30,12 +31,47 @@ export default function FriendsList() {
   const { user } = useAuth();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+
+  const getSignedUrl = async (avatarPath: string) => {
+    try {
+      const folderName = avatarPath.includes('avatars/') 
+        ? avatarPath.split('avatars/')[1].split('/')[0]
+        : avatarPath;
+      
+      const filePath = `${folderName}/avatar.png`;
+      console.log('Requesting signed URL for path:', filePath);
+      
+      const { data, error } = await supabase
+        .storage
+        .from('avatars')
+        .createSignedUrl(filePath, 3600);
+
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
+      return null;
+    }
+  };
+
+  const loadAvatarUrls = async (profiles: { id: string, avatar_url: string | null }[]) => {
+    const urls: Record<string, string> = {};
+    for (const profile of profiles) {
+      if (profile.avatar_url) {
+        const signedUrl = await getSignedUrl(profile.avatar_url);
+        if (signedUrl) {
+          urls[profile.id] = signedUrl;
+        }
+      }
+    }
+    setAvatarUrls(urls);
+  };
 
   const fetchFriends = async () => {
     if (!user) return;
     
     try {
-      // Fetch accepted friends
       const { data: friendsData, error: friendsError } = await supabase
         .from('friends')
         .select(`
@@ -52,7 +88,6 @@ export default function FriendsList() {
 
       if (friendsError) throw friendsError;
 
-      // Fetch pending requests
       const { data: pendingData, error: pendingError } = await supabase
         .from('friends')
         .select(`
@@ -70,6 +105,12 @@ export default function FriendsList() {
 
       setFriends(friendsData || []);
       setPendingRequests(pendingData || []);
+
+      const allProfiles = [
+        ...(pendingData?.map(r => r.profiles) || []),
+        ...(friendsData?.map(f => f.profiles) || [])
+      ];
+      await loadAvatarUrls(allProfiles);
     } catch (error) {
       console.error('Error fetching friends:', error);
       toast.error('Error al cargar los amigos');
@@ -113,12 +154,10 @@ export default function FriendsList() {
           <h3 className="text-lg font-semibold mb-2">Solicitudes Pendientes</h3>
           {pendingRequests.map((request) => (
             <div key={request.id} className="flex items-center gap-2 p-2">
-              <Image
-                src={request.profiles.avatar_url || '/default-avatar.png'}
-                alt={request.profiles.username}
-                width={32}
-                height={32}
-                className="rounded-full"
+              <Avatar 
+                url={avatarUrls[request.profiles.id] || null}
+                username={request.profiles.username}
+                size={32}
               />
               <span>{request.profiles.username}</span>
               <div className="flex gap-2 ml-auto">
@@ -145,12 +184,10 @@ export default function FriendsList() {
         <h3 className="text-lg font-semibold mb-2">Amigos</h3>
         {friends.map((friend) => (
           <div key={friend.id} className="flex items-center gap-2 p-2">
-            <Image
-              src={friend.profiles.avatar_url || '/default-avatar.png'}
-              alt={friend.profiles.username}
-              width={32}
-              height={32}
-              className="rounded-full"
+            <Avatar 
+              url={avatarUrls[friend.profiles.id] || null}
+              username={friend.profiles.username}
+              size={32}
             />
             <span>{friend.profiles.username}</span>
           </div>
